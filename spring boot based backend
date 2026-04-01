@@ -1,0 +1,238 @@
+// =============================
+// Smart Travel Planner Backend
+// Tech Stack: Spring Boot, Spring Web, Spring Data JPA, H2 (dev)
+// Package: com.example.travelplanner
+// =============================
+
+// ---------- pom.xml ----------
+/*
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>com.example</groupId>
+    <artifactId>travelplanner</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>jar</packaging>
+    <name>travelplanner</name>
+    <description>Smart Travel Planner Backend</description>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.5</version>
+    </parent>
+
+    <properties>
+        <java.version>17</java.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+*/
+
+// ---------- application.properties ----------
+/*
+spring.datasource.url=jdbc:h2:mem:travel_db
+spring.datasource.driverClassName=org.h2.Driver
+spring.datasource.username=sa
+spring.datasource.password=
+
+spring.jpa.database-platform=org.hibernate.dialect.H2Dialect
+spring.jpa.hibernate.ddl-auto=update
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+*/
+
+// ---------- TravelPlannerApplication.java ----------
+package com.example.travelplanner;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class TravelPlannerApplication {
+    public static void main(String[] args) {
+        SpringApplication.run(TravelPlannerApplication.class, args);
+    }
+}
+
+// ---------- Entity: Trip ----------
+package com.example.travelplanner.model;
+
+import jakarta.persistence.*;
+import java.util.List;
+
+@Entity
+public class Trip {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String destination;
+    private double budget;
+    private int days;
+
+    @OneToMany(mappedBy = "trip", cascade = CascadeType.ALL)
+    private List<ItineraryItem> itinerary;
+
+    // getters & setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public String getDestination() { return destination; }
+    public void setDestination(String destination) { this.destination = destination; }
+    public double getBudget() { return budget; }
+    public void setBudget(double budget) { this.budget = budget; }
+    public int getDays() { return days; }
+    public void setDays(int days) { this.days = days; }
+    public List<ItineraryItem> getItinerary() { return itinerary; }
+    public void setItinerary(List<ItineraryItem> itinerary) { this.itinerary = itinerary; }
+}
+
+// ---------- Entity: ItineraryItem ----------
+package com.example.travelplanner.model;
+
+import jakarta.persistence.*;
+
+@Entity
+public class ItineraryItem {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private int day;
+    private String activity;
+    private double cost;
+
+    @ManyToOne
+    @JoinColumn(name = "trip_id")
+    private Trip trip;
+
+    // getters & setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    public int getDay() { return day; }
+    public void setDay(int day) { this.day = day; }
+    public String getActivity() { return activity; }
+    public void setActivity(String activity) { this.activity = activity; }
+    public double getCost() { return cost; }
+    public void setCost(double cost) { this.cost = cost; }
+    public Trip getTrip() { return trip; }
+    public void setTrip(Trip trip) { this.trip = trip; }
+}
+
+// ---------- Repository ----------
+package com.example.travelplanner.repository;
+
+import com.example.travelplanner.model.Trip;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface TripRepository extends JpaRepository<Trip, Long> {}
+
+// ---------- Service ----------
+package com.example.travelplanner.service;
+
+import com.example.travelplanner.model.*;
+import com.example.travelplanner.repository.TripRepository;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+public class TripService {
+
+    private final TripRepository tripRepository;
+
+    public TripService(TripRepository tripRepository) {
+        this.tripRepository = tripRepository;
+    }
+
+    public Trip createTrip(Trip trip) {
+        List<ItineraryItem> items = new ArrayList<>();
+        double perDayCost = trip.getBudget() / trip.getDays();
+
+        for (int i = 1; i <= trip.getDays(); i++) {
+            ItineraryItem item = new ItineraryItem();
+            item.setDay(i);
+            item.setActivity("Explore " + trip.getDestination() + " - Day " + i);
+            item.setCost(perDayCost);
+            item.setTrip(trip);
+            items.add(item);
+        }
+
+        trip.setItinerary(items);
+        return tripRepository.save(trip);
+    }
+
+    public List<Trip> getAllTrips() {
+        return tripRepository.findAll();
+    }
+}
+
+// ---------- Controller ----------
+package com.example.travelplanner.controller;
+
+import com.example.travelplanner.model.Trip;
+import com.example.travelplanner.service.TripService;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/trips")
+@CrossOrigin(origins = "*")
+public class TripController {
+
+    private final TripService tripService;
+
+    public TripController(TripService tripService) {
+        this.tripService = tripService;
+    }
+
+    @PostMapping
+    public Trip createTrip(@RequestBody Trip trip) {
+        return tripService.createTrip(trip);
+    }
+
+    @GetMapping
+    public List<Trip> getTrips() {
+        return tripService.getAllTrips();
+    }
+}
+
+// =============================
+// How to Run:
+// 1. mvn spring-boot:run
+// 2. Backend runs on http://localhost:8080
+// 3. POST /api/trips
+//    Body: {"destination":"Goa","budget":10000,"days":3}
+// 4. GET /api/trips
+// =============================
