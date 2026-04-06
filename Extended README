@@ -1,0 +1,28 @@
+🌍 Smart Travel Planner
+
+A centralized, web-based **Smart Travel Planner** designed to simplify and optimize trip planning.
+
+✨ Features
+
+* 🗺️ Automated itinerary generation
+* 💰 Budget management
+* 🔍 Destination discovery
+* ⚡ Fast and user-friendly interface
+
+🛠️ Tech Stack
+
+* Frontend: HTML, CSS, JavaScript
+* Backend: (e.g., Node.js / PHP)
+* Database: (e.g., MySQL / MongoDB)
+
+🚀 How to Run
+
+1. Clone the repository
+2. Install dependencies
+3. Start the server
+4. Open in browser
+
+📌 Purpose
+
+This project helps users plan trips efficiently with smart recommendations and organized travel details.
+
