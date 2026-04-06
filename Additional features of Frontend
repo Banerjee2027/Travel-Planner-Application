@@ -1,0 +1,1343 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+<meta charset="UTF-8" /> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+<title>Voyago — Smart Travel Planner</title> 
+<link rel="preconnect" href="https://fonts.googleapis.com" /> 
+<link 
+href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,70
+0;1,500&family=Sora:wght@300;400;500;600&display=swap" rel="stylesheet" /> 
+<style> 
+*{box-sizing:border-box;margin:0;padding:0} 
+:root{ --ink:#0d1117;--ink2:#1e2a3a;--ink3:#2e3d52; --sky:#1a6cf6;--sky2:#3d87f5;--sky3:#d0e6ff; --jade:#00b87a;--jade2:#d0f5e8; --sun:#f5a623;--sun2:#fff3d0; --rose:#e8365d;--rose2:#fde8ee; --sand:#f7f4ef;--sand2:#ede9e1; --white:#ffffff; --text1:#0d1117;--text2:#4a5568;--text3:#8a96a3; --radius:14px;--radius-sm:9px; --shadow:0 2px 12px rgba(0,0,0,0.08); --shadow-lg:0 8px 32px rgba(0,0,0,0.14); 
+} 
+html,body{height:100%;background:var(--sand);font-family:'Sora',sans-serif;color:var(-
+text1);overflow:hidden} 
+/* ── App Shell ── */ 
+.app{display:flex;flex-direction:column;height:100vh;max-width:430px;margin:0 
+auto;background:var(--white);position:relative;overflow:hidden;box-shadow:0 0 60px 
+rgba(0,0,0,0.18)} 
+/* ── Screens ── */ 
+.screen{position:absolute;inset:0;bottom:68px;overflow-y:auto;opacity:0;pointer
+events:none;transform:translateY(8px);transition:opacity .22s ease,transform .22s 
+ease} 
+.screen.active{opacity:1;pointer-events:all;transform:translateY(0)} 
+/* ── Bottom Nav ── */ 
+.nav{position:absolute;bottom:0;left:0;right:0;height:68px;background:var(-
+white);border-top:1px solid #eef0f3;display:flex;align-items:center;z-index:100} 
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;font
+size:9.5px;font-weight:500;letter-spacing:.04em;color:var(-
+text3);cursor:pointer;border:none;background:none;font-family:'Sora',sans
+serif;padding:6px 0;transition:color .15s;text-transform:uppercase} 
+.nav-btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.6} 
+.nav-btn.on{color:var(--sky)} 
+/* ── Hero ── */ 
+.hero{background:var(--ink);padding:28px 20px 
+22px;position:relative;overflow:hidden;flex-shrink:0} 
+.hero::before{content:'';position:absolute;top:-80px;right:
+60px;width:260px;height:260px;border-radius:50%;background:radial
+gradient(circle,rgba(26,108,246,.25) 0%,transparent 70%)} 
+.hero::after{content:'';position:absolute;bottom:
+40px;left:20px;width:140px;height:140px;border-radius:50%;background:radial
+gradient(circle,rgba(0,184,122,.15) 0%,transparent 70%)} 
+.hero-chip{display:inline-flex;align
+items:center;gap:5px;background:rgba(0,184,122,.15);border:1px solid 
+rgba(0,184,122,.3);border-radius:20px;padding:3px 10px;font-size:10px;font
+weight:600;color:var(--jade);letter-spacing:.08em;margin-bottom:10px;text
+transform:uppercase} 
+.hero h1{font-family:'Playfair Display',serif;font-size:2rem;color:#f0ede8;line
+height:1.15;margin-bottom:5px} 
+.hero h1 em{color:var(--sky2);font-style:italic} 
+.hero p{font-size:12.5px;color:rgba(240,237,232,.5);font-weight:300;margin
+bottom:20px} 
+/* ── Search Bar ── */ 
+.search-box{background:rgba(255,255,255,.07);border:1px solid 
+rgba(255,255,255,.12);border-radius:var(--radius);padding:14px;position:relative;z
+index:1} 
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px} 
+.field{display:flex;flex-direction:column;gap:4px} 
+.field label{font-size:9.5px;font-weight:600;letter-spacing:.1em;text
+transform:uppercase;color:rgba(240,237,232,.4)} 
+.field input,.field select{background:rgba(255,255,255,.08);border:1px solid 
+rgba(255,255,255,.1);border-radius:9px;padding:8px 10px;font-size:13px;font
+family:'Sora',sans-serif;color:#f0ede8;outline:none;width:100%} 
+.field input::placeholder{color:rgba(240,237,232,.3)} 
+.field select option{background:#1e2a3a;color:#f0ede8} 
+.plan-btn{width:100%;margin-top:10px;background:var(--sky);border:none;border
+radius:10px;padding:12px;font-size:13.5px;font-weight:600;font-family:'Sora',sans
+serif;color:#fff;cursor:pointer;display:flex;align-items:center;justify
+content:center;gap:7px;transition:background .15s} 
+.plan-btn:hover{background:#1259d4} 
+/* ── Body Pad ── */ 
+.body{padding:18px} 
+.sec-label{font-size:10px;font-weight:600;letter-spacing:.12em;text
+transform:uppercase;color:var(--text3);margin-bottom:12px} 
+/* ── Chips ── */ 
+.chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:22px} 
+.chip{border:1px solid #dde1e7;border-radius:20px;padding:6px 13px;font
+size:12px;cursor:pointer;color:var(--text2);background:var(--white);transition:all 
+.15s;font-weight:500} 
+.chip.on{background:var(--ink);color:#7BC5F0;border-color:var(--sky)} 
+/* ── Dest Cards ── */ 
+.dest-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:22px} 
+.dcard{border:1px solid #eef0f3;border-radius:var(-
+radius);overflow:hidden;cursor:pointer;transition:transform .15s,box-shadow .15s} 
+.dcard:hover{transform:translateY(-2px);box-shadow:var(--shadow-lg)} 
+.dcard-img{height:88px;display:flex;align-items:flex-end;padding:8px} 
+.dcard-body{padding:10px 12px} 
+.dcard-body h3{font-size:13px;font-weight:600;margin-bottom:2px} 
+.dcard-body p{font-size:11px;color:var(--text3);margin-bottom:7px} 
+.dcard-foot{display:flex;justify-content:space-between;align-items:center} 
+.price{font-size:12.5px;font-weight:600;color:var(--jade)} 
+.badge{font-size:9.5px;padding:3px 8px;border-radius:10px;font-weight:600} 
+.badge.hot{background:var(--rose2);color:var(--rose)} 
+.badge.new{background:var(--jade2);color:#007a52} 
+.badge.deal{background:var(--sky3);color:#0047b3} 
+/* ── AI Button ── */ 
+.ai-btn{width:100%;background:var(--ink);border:1px solid var(--sky);border-radius:var(--radius);padding:13px;font-size:13px;font-family:'Sora',sans-serif;font
+weight:500;color:#7BC5F0;cursor:pointer;display:flex;align-items:center;justify
+content:center;gap:8px;transition:background .15s;margin-top:4px} 
+.ai-btn:hover{background:#1a2740} 
+/* ── Itinerary ── */ 
+.itin-header{display:flex;justify-content:space-between;align-items:center;margin
+bottom:16px} 
+.itin-title{font-family:'Playfair Display',serif;font-size:1.4rem} 
+.ai-tag{font-size:11px;color:var(--jade);font-weight:600;background:var(-
+jade2);padding:3px 10px;border-radius:10px} 
+.stats3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px} 
+.stat{background:var(--sand);border-radius:10px;padding:12px 8px;text-align:center} 
+.stat-v{font-size:18px;font-weight:600} 
+.stat-l{font-size:10.5px;color:var(--text3);margin-top:2px} 
+.plan-box{background:var(--sand);border-radius:var(--radius);padding:16px;margin
+bottom:16px} 
+.plan-hdr{display:flex;justify-content:space-between;align-items:center;margin
+bottom:14px} 
+.plan-hdr-t{font-family:'Playfair Display',serif;font-size:1.05rem} 
+.edit-btn{font-size:12px;color:var(-
+sky);border:none;background:none;cursor:pointer;font-family:'Sora',sans-serif;font
+weight:500} 
+.timeline{display:flex;flex-direction:column} 
+.tday{display:flex;gap:12px;padding-bottom:16px;position:relative} 
+.tday:not(:last
+child)::before{content:'';position:absolute;left:13px;top:27px;bottom:0;width:1px;back
+ground:#dde1e7} 
+.tdot{width:27px;height:27px;border-radius:50%;background:var(--ink);border:2px solid 
+var(--sky);display:flex;align-items:center;justify-content:center;font-size:10.5px;font
+weight:600;color:#7BC5F0;flex-shrink:0;margin-top:1px} 
+.tday-c h4{font-size:13px;font-weight:600;margin-bottom:3px} 
+.tday-c p{font-size:11.5px;color:var(--text2);line-height:1.55} 
+.tday-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px} 
+.ttag{font-size:10px;background:var(--sky3);color:#0047b3;border
+radius:8px;padding:2px 8px;font-weight:500} 
+.ttag.food{background:var(--sun2);color:#8a5200} 
+.ttag.nature{background:var(--jade2);color:#007a52} 
+/* ── Hotels ── */ 
+.hotel-card{border:1px solid #eef0f3;border-radius:var(-
+radius);overflow:hidden;margin-bottom:12px;cursor:pointer;transition:box-shadow 
+.15s} 
+.hotel-card:hover{box-shadow:var(--shadow)} 
+.hotel-img{height:120px;position:relative} 
+.hotel
+tag{position:absolute;top:10px;left:10px;background:rgba(0,0,0,.6);color:#fff;font
+size:10px;font-weight:600;padding:3px 9px;border-radius:8px;letter-spacing:.04em} 
+.hotel-body{padding:12px 14px} 
+.hotel-row{display:flex;justify-content:space-between;align-items:flex-start;margin
+bottom:5px} 
+.hotel-name{font-size:14px;font-weight:600} 
+.hotel-stars{color:var(--sun);font-size:12px;letter-spacing:2px} 
+.hotel-loc{font-size:11.5px;color:var(--text3);margin-bottom:8px;display:flex;align
+items:center;gap:4px} 
+.hotel-foot{display:flex;justify-content:space-between;align-items:center} 
+.hotel-price{font-size:14px;font-weight:600;color:var(--ink)} 
+.hotel-price span{font-size:11px;font-weight:400;color:var(--text3)} 
+.book-btn{background:var(--sky);color:#fff;border:none;border-radius:8px;padding:7px 
+14px;font-size:12px;font-weight:600;font-family:'Sora',sans-serif;cursor:pointer} 
+.hotel-amenities{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px} 
+.amenity{font-size:10px;background:var(--sand);color:var(--text2);border
+radius:7px;padding:3px 8px;font-weight:500} 
+/* ── Map ── */ 
+.map-container{position:relative;background:#c9d8e8;height:260px;border-radius:var(--radius);overflow:hidden;margin-bottom:16px} 
+.map-svg{width:100%;height:100%} 
+.map-overlay{position:absolute;top:12px;left:12px;right:12px;display:flex;gap:8px} 
+.map-search{flex:1;background:var(--white);border:none;border
+radius:9px;padding:9px 12px;font-size:12.5px;font-family:'Sora',sans-serif;box
+shadow:var(--shadow)} 
+.map-btn{background:var(--white);border:none;border-radius:9px;padding:9px 
+12px;font-size:12px;font-weight:600;font-family:'Sora',sans-serif;color:var(-
+sky);cursor:pointer;box-shadow:var(--shadow);white-space:nowrap} 
+.route-info{background:var(--ink);color:#f0ede8;border-radius:var(-
+radius);padding:14px 16px;margin-bottom:16px} 
+.route-title{font-size:12px;font-weight:600;letter-spacing:.06em;text
+transform:uppercase;color:rgba(240,237,232,.5);margin-bottom:10px} 
+.route-stops{display:flex;flex-direction:column;gap:0} 
+.rstop{display:flex;align-items:center;gap:10px;padding:8px 0;position:relative} 
+.rstop:not(:last-child)::after{content:'';position:absolute;left:9px;bottom:
+8px;width:2px;height:16px;background:rgba(255,255,255,.2)} 
+.rdot{width:20px;height:20px;border-radius:50%;background:var(-
+sky);display:flex;align-items:center;justify-content:center;flex-shrink:0} 
+.rdot svg{width:10px;height:10px;fill:#fff;stroke:none} 
+.rdot.end{background:var(--rose)} 
+.rstop-info{flex:1} 
+.rstop-name{font-size:13px;font-weight:500} 
+.rstop-detail{font-size:11px;color:rgba(240,237,232,.5)} 
+.rstop-time{font-size:12px;font-weight:600;color:var(--sky2)} 
+.transport-cards{display:flex;gap:9px;overflow-x:auto;padding-bottom:8px;margin
+bottom:16px;scrollbar-width:none} 
+.transport-cards::-webkit-scrollbar{display:none} 
+.tcard{flex-shrink:0;width:130px;background:var(--sand);border-radius:var(--radius
+sm);padding:12px;border:1px solid #dde1e7} 
+.tcard-icon{width:36px;height:36px;border-radius:9px;display:flex;align
+items:center;justify-content:center;margin-bottom:8px;font-size:18px} 
+.tcard h4{font-size:12px;font-weight:600;margin-bottom:2px} 
+.tcard p{font-size:10.5px;color:var(--text3);line-height:1.4} 
+.tcard-badge{display:inline-block;margin-top:5px;font-size:9.5px;font
+weight:600;padding:2px 7px;border-radius:7px} 
+/* ── Packing ── */ 
+.pack-category{background:var(--sand);border-radius:var(-
+radius);padding:14px;margin-bottom:12px} 
+.pack-cat-hdr{display:flex;justify-content:space-between;align-items:center;margin
+bottom:10px} 
+.pack-cat-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px} 
+.pack-progress{font-size:11px;color:var(--text3)} 
+.pack-bar{height:4px;background:#dde1e7;border-radius:2px;margin
+bottom:12px;overflow:hidden} 
+.pack-fill{height:100%;border-radius:2px;background:var(--jade);transition:width .3s} 
+.pack-item{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px 
+solid #eef0f3;cursor:pointer} 
+.pack-item:last-child{border-bottom:none} 
+.pack-check{width:20px;height:20px;border-radius:6px;border:2px solid 
+#dde1e7;display:flex;align-items:center;justify-content:center;flex
+shrink:0;transition:all .15s} 
+.pack-check.done{background:var(--jade);border-color:var(--jade)} 
+.pack-check.done::after{content:'✓';font-size:11px;color:#fff;font-weight:700} 
+.pack-item.done .pack-text{text-decoration:line-through;color:var(--text3)} 
+.pack-text{font-size:13px} 
+.pack-add{display:flex;gap:8px;margin-top:12px} 
+.pack-add input{flex:1;border:1px solid #dde1e7;border-radius:9px;padding:8px 
+12px;font-size:13px;font-family:'Sora',sans-serif;outline:none} 
+.pack-add button{background:var(--sky);color:#fff;border:none;border
+radius:9px;padding:8px 14px;font-size:13px;font-weight:600;font-family:'Sora',sans
+serif;cursor:pointer} 
+/* ── Tips & Reviews ── */ 
+.tip-tabs{display:flex;gap:0;background:var(--sand);border
+radius:10px;padding:3px;margin-bottom:16px} 
+.tip-tab{flex:1;padding:7px;text-align:center;font-size:12px;font
+weight:600;border:none;background:none;font-family:'Sora',sans-serif;color:var(-
+text3);border-radius:8px;cursor:pointer;transition:all .15s} 
+.tip-tab.on{background:var(--white);color:var(--text1);box-shadow:var(--shadow)} 
+.review-card{border:1px solid #eef0f3;border-radius:var(--radius);padding:14px;margin
+bottom:12px} 
+.rev-hdr{display:flex;align-items:center;gap:10px;margin-bottom:9px} 
+.rev-avatar{width:36px;height:36px;border-radius:50%;display:flex;align
+items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex
+shrink:0} 
+.rev-name{font-size:13px;font-weight:600} 
+.rev-date{font-size:11px;color:var(--text3)} 
+.rev-stars{color:var(--sun);font-size:13px;margin-bottom:5px} 
+.rev-text{font-size:12.5px;color:var(--text2);line-height:1.6} 
+.rev-tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px} 
+.rtag{font-size:10px;background:var(--sand2);color:var(--text2);border
+radius:7px;padding:3px 8px;font-weight:500} 
+.food-card{display:flex;gap:12px;border:1px solid #eef0f3;border-radius:var(-
+radius);padding:12px;margin-bottom:10px;cursor:pointer} 
+.food-img{width:64px;height:64px;border-radius:10px;flex
+shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;font
+size:28px} 
+.food-info h4{font-size:13px;font-weight:600;margin-bottom:3px} 
+.food-info p{font-size:11.5px;color:var(--text3);margin-bottom:5px;line-height:1.4} 
+.food-foot{display:flex;align-items:center;gap:8px} 
+.food-price{font-size:12px;font-weight:600;color:var(--ink)} 
+.food-rating{font-size:11px;color:var(--sun);font-weight:600} 
+/* ── Weather ── */ 
+.weather-hero{background:linear-gradient(145deg,var(--ink),var(--ink3));border
+radius:var(--radius);padding:20px;margin
+bottom:16px;position:relative;overflow:hidden} 
+.weather-hero::before{content:'';position:absolute;top:-30px;right:
+30px;width:140px;height:140px;border-radius:50%;background:radial
+gradient(circle,rgba(245,166,35,.2) 0%,transparent 70%)} 
+.wh-city{font-size:11px;color:rgba(240,237,232,.5);font-weight:600;letter
+spacing:.1em;text-transform:uppercase;margin-bottom:5px} 
+.wh-temp{font-family:'Playfair Display',serif;font-size:3.5rem;color:#f0ede8;line
+height:1;margin-bottom:5px} 
+.wh-temp span{font-size:1.5rem} 
+.wh-desc{font-size:14px;color:rgba(240,237,232,.7);margin-bottom:14px} 
+.wh-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:8px} 
+.wh-item{text-align:center} 
+.wh-item-val{font-size:14px;font-weight:600;color:#f0ede8} 
+.wh-item-lbl{font-size:10px;color:rgba(240,237,232,.45);margin-top:2px} 
+.forecast-strip{display:flex;gap:9px;overflow-x:auto;padding-bottom:6px;margin
+bottom:16px;scrollbar-width:none} 
+.forecast-strip::-webkit-scrollbar{display:none} 
+.fc-day{flex-shrink:0;width:70px;background:var(--sand);border-radius:var(--radius
+sm);padding:10px 8px;text-align:center;border:1px solid #dde1e7} 
+.fc-day.today{background:var(--ink);border-color:var(--sky)} 
+.fc-day-name{font-size:10px;font-weight:600;letter-spacing:.05em;text
+transform:uppercase;color:var(--text3);margin-bottom:5px} 
+.fc-day.today .fc-day-name{color:rgba(240,237,232,.5)} 
+.fc-icon{font-size:22px;margin-bottom:5px} 
+.fc-temp{font-size:13px;font-weight:600} 
+.fc-day.today .fc-temp{color:#f0ede8} 
+/* ── Culture ── */ 
+.culture-card{border-radius:var(--radius);overflow:hidden;margin-bottom:12px} 
+.cc-top{padding:14px 16px;display:flex;align-items:center;gap:12px} 
+.cc-icon{width:44px;height:44px;border-radius:10px;display:flex;align
+items:center;justify-content:center;font-size:22px;flex-shrink:0} 
+.cc-title{font-size:14px;font-weight:600;margin-bottom:2px} 
+.cc-sub{font-size:11.5px;color:var(--text3)} 
+.cc-body{padding:0 16px 14px} 
+.cc-text{font-size:12.5px;color:var(--text2);line-height:1.65} 
+.cc-tips{display:flex;flex-direction:column;gap:5px;margin-top:10px} 
+.cc-tip{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:var(--text2)} 
+.cc-tip::before{content:'→';font-size:12px;color:var(--sky);flex-shrink:0;margin-top:1px} 
+.do-dont{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px} 
+.dd-box{border-radius:var(--radius-sm);padding:12px} 
+.dd-box.do{background:var(--jade2)} 
+.dd-box.dont{background:var(--rose2)} 
+.dd-title{font-size:11px;font-weight:700;letter-spacing:.08em;text
+transform:uppercase;margin-bottom:8px} 
+.dd-box.do .dd-title{color:#007a52} 
+.dd-box.dont .dd-title{color:var(--rose)} 
+.dd-item{font-size:11.5px;margin-bottom:5px;display:flex;gap:5px;line-height:1.4} 
+/* ── Notifications ── */ 
+.notif-card{border-radius:var(--radius);padding:14px 16px;margin
+bottom:10px;display:flex;gap:12px;cursor:pointer;transition:transform .1s} 
+.notif-card:hover{transform:scale(1.01)} 
+.notif-card:active{transform:scale(0.99)} 
+.notif-icon{width:42px;height:42px;border-radius:11px;display:flex;align
+items:center;justify-content:center;font-size:20px;flex-shrink:0} 
+.notif-body{flex:1} 
+.notif-title{font-size:13px;font-weight:600;margin-bottom:3px} 
+.notif-text{font-size:11.5px;color:var(--text2);line-height:1.5;margin-bottom:5px} 
+.notif-time{font-size:10.5px;color:var(--text3);font-weight:500} 
+.notif-action{display:inline-flex;align-items:center;gap:4px;font-size:11px;font
+weight:600;color:var(--sky);background:var(--sky3);border:none;border
+radius:7px;padding:4px 10px;cursor:pointer;font-family:'Sora',sans-serif;margin
+top:4px} 
+.notif-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px} 
+.notif-dot.unread{background:var(--sky)} 
+.notif-dot.read{background:transparent} 
+.notif-switch-row{display:flex;justify-content:space-between;align
+items:center;padding:12px 0;border-bottom:1px solid #eef0f3} 
+.notif-switch-lbl{font-size:13px;font-weight:500} 
+.notif-switch-desc{font-size:11.5px;color:var(--text3);margin-top:2px} 
+.toggle{width:44px;height:24px;border
+radius:12px;background:#dde1e7;position:relative;cursor:pointer;transition:backgroun
+d .2s;flex-shrink:0} 
+.toggle.on{background:var(--sky)} 
+.toggle::after{content:'';position:absolute;width:18px;height:18px;border
+radius:50%;background:#fff;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 4px 
+rgba(0,0,0,.2)} 
+.toggle.on::after{left:23px} 
+/* ── Offline ── */ 
+.offline-hero{background:var(--ink);border-radius:var(--radius);padding:18px;margin
+bottom:16px;display:flex;align-items:center;gap:14px} 
+.offline-icon{width:52px;height:52px;border
+radius:14px;background:rgba(0,184,122,.15);display:flex;align-items:center;justify
+content:center;font-size:24px;flex-shrink:0} 
+.offline-title{font-size:15px;font-weight:600;color:#f0ede8;margin-bottom:4px} 
+.offline-sub{font-size:12px;color:rgba(240,237,232,.5)} 
+.offline-map-card{border-radius:var(--radius);overflow:hidden;margin
+bottom:12px;border:1px solid #eef0f3} 
+.offline-map-top{height:120px;background:linear
+gradient(135deg,#b8d4e8,#8fb8d4);position:relative;display:flex;align
+items:center;justify-content:center} 
+.offline-map-body{padding:12px 14px;display:flex;justify-content:space-between;align
+items:center} 
+.offline-map-info h4{font-size:13px;font-weight:600;margin-bottom:3px} 
+.offline-map-info p{font-size:11.5px;color:var(--text3)} 
+.dl-btn{background:var(--sky);color:#fff;border:none;border-radius:9px;padding:8px 
+14px;font-size:12px;font-weight:600;font-family:'Sora',sans-serif;cursor:pointer;white
+space:nowrap;display:flex;align-items:center;gap:5px} 
+.dl-btn.done{background:var(--jade)} 
+.progress-ring{position:relative;width:52px;height:52px} 
+.progress-track{fill:none;stroke:#eef0f3;stroke-width:4} 
+.progress-arc{fill:none;stroke:var(--jade);stroke-width:4;stroke
+linecap:round;transition:stroke-dashoffset .4s ease} 
+.progress-pct{position:absolute;inset:0;display:flex;align-items:center;justify
+content:center;font-size:11px;font-weight:700;color:var(--jade)} 
+/* ── Scrollbar ── */ 
+.screen::-webkit-scrollbar{width:0} 
+/* ── Custom Plan ── */ 
+.custom-section{background:var(--sand);border-radius:var(-
+radius);padding:14px;margin-bottom:14px} 
+.custom-title{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align
+items:center;gap:7px} 
+.slider-row{display:flex;flex-direction:column;gap:4px;margin-bottom:12px} 
+.slider-label{display:flex;justify-content:space-between;font-size:12px;color:var(-
+text2)} 
+.slider-label span{font-weight:600;color:var(--sky)} 
+input[type=range]{width:100%;accent-color:var(--sky);height:4px;cursor:pointer} 
+.toggle-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px} 
+.tog-pill{border:1px solid #dde1e7;border-radius:20px;padding:6px 13px;font
+size:12px;cursor:pointer;color:var(--text2);background:var(--white);transition:all 
+.15s;font-weight:500} 
+.tog-pill.on{background:var(--sky);color:#fff;border-color:var(--sky)} 
+.regen-btn{width:100%;background:var(--jade);border:none;border
+radius:10px;padding:11px;font-size:13px;font-weight:600;font-family:'Sora',sans
+serif;color:#fff;cursor:pointer;display:flex;align-items:center;justify
+content:center;gap:7px;transition:background .15s} 
+.regen-btn:hover{background:#009e68} 
+</style> 
+</head> 
+<body> 
+<div class="app"> 
+<!-- ═══════════════════ SCREEN: EXPLORE 
+═══════════════════ --> 
+<div id="s-explore" class="screen active"> 
+<div class="hero"> 
+<div class="hero-chip">✦ Voyago AI</div> 
+<h1>Where will<br>you go <em>next?</em></h1> 
+<p>Smart itineraries, local intel, offline-ready</p> 
+<div class="search-box"> 
+<div class="row2"> 
+<div class="field"><label>From</label><input id="from" type="text" 
+placeholder="Pune" /></div> 
+          <div class="field"><label>To</label><input id="to" type="text" 
+placeholder="Destination" /></div> 
+        </div> 
+        <div class="row2" style="margin-top:8px"> 
+          <div class="field"><label>Depart</label><input id="dep" type="date" /></div> 
+          <div class="field"><label>Duration</label> 
+            <select id="dur"><option>3 days</option><option>5 days</option><option 
+selected>7 days</option><option>10 days</option><option>14 
+days</option></select> 
+          </div> 
+        </div> 
+        <button class="plan-btn" onclick="planTrip()"> 
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg> 
+          Plan My Trip 
+        </button> 
+      </div> 
+    </div> 
+    <div class="body"> 
+      <div class="sec-label">Travel style</div> 
+      <div class="chips"> 
+        <div class="chip on" onclick="tog(this)">Adventure</div> 
+        <div class="chip" onclick="tog(this)">Culture</div> 
+        <div class="chip" onclick="tog(this)">Relaxation</div> 
+        <div class="chip" onclick="tog(this)">Food &amp; Drink</div> 
+        <div class="chip" onclick="tog(this)">Budget</div> 
+        <div class="chip" onclick="tog(this)">Luxury</div> 
+        <div class="chip" onclick="tog(this)">Family</div> 
+        <div class="chip" onclick="tog(this)">Solo</div> 
+      </div> 
+      <div class="sec-label">Trending now</div> 
+      <div class="dest-grid"> 
+        <div class="dcard" onclick="goItin('Bali, Indonesia','₹42,000','7')"> 
+          <div class="dcard-img" style="background:linear
+gradient(150deg,#0F6E56,#1D9E75);"> 
+            <span style="font-size:30px">      </span> 
+          </div> 
+          <div class="dcard-body"> 
+            <h3>Bali, Indonesia</h3><p>Temples &amp; rice terraces</p> 
+            <div class="dcard-foot"><span class="price">₹42,000</span><span 
+class="badge hot">   Hot</span></div> 
+          </div> 
+        </div> 
+        <div class="dcard" onclick="goItin('Kyoto, Japan','₹88,000','7')"> 
+          <div class="dcard-img" style="background:linear
+gradient(150deg,#534AB7,#7F77DD);"> 
+            <span style="font-size:30px">   </span> 
+          </div> 
+          <div class="dcard-body"> 
+            <h3>Kyoto, Japan</h3><p>Zen temples &amp; history</p> 
+            <div class="dcard-foot"><span class="price">₹88,000</span><span 
+class="badge new">    Deal</span></div> 
+          </div> 
+        </div> 
+        <div class="dcard" onclick="goItin('Santorini, Greece','₹1,10,000','7')"> 
+          <div class="dcard-img" style="background:linear
+gradient(150deg,#185FA5,#378ADD);"> 
+            <span style="font-size:30px">   </span> 
+          </div> 
+          <div class="dcard-body"> 
+            <h3>Santorini, Greece</h3><p>Caldera &amp; sunsets</p> 
+            <div class="dcard-foot"><span class="price">₹1,10,000</span><span 
+class="badge deal">     New</span></div> 
+          </div> 
+        </div> 
+        <div class="dcard" onclick="goItin('Rajasthan, India','₹18,000','5')"> 
+          <div class="dcard-img" style="background:linear
+gradient(150deg,#854F0B,#EF9F27);"> 
+            <span style="font-size:30px">     </span> 
+          </div> 
+          <div class="dcard-body"> 
+            <h3>Rajasthan, India</h3><p>Forts &amp; desert vibes</p> 
+            <div class="dcard-foot"><span class="price">₹18,000</span><span 
+class="badge hot">   Popular</span></div> 
+          </div> 
+        </div> 
+      </div> 
+      <button class="ai-btn" onclick="askAI()"> 
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10
+5"/><path d="M2 12l10 5 10-5"/></svg> 
+        Ask AI for personalised picks ↗ 
+      </button> 
+    </div> 
+  </div> 
+ 
+  <!-- ═══════════════════ SCREEN: ITINERARY 
+═══════════════════ --> 
+  <div id="s-itin" class="screen"> 
+    <div class="body"> 
+      <div class="itin-header"> 
+        <div> 
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter
+spacing:.1em;margin-bottom:4px">Your trip</div> 
+          <div class="itin-title" id="itin-title">Bali, 7 days</div> 
+        </div> 
+        <div class="ai-tag">AI-crafted</div> 
+      </div> 
+      <div class="stats3"> 
+        <div class="stat"><div class="stat-v" id="itin-days">7</div><div class="stat
+l">Days</div></div> 
+        <div class="stat"><div class="stat-v">12</div><div class="stat
+l">Activities</div></div> 
+        <div class="stat"><div class="stat-v" id="itin-budget" style="color:var(-
+jade)">₹42k</div><div class="stat-l">Budget</div></div> 
+      </div> 
+      <div class="plan-box"> 
+        <div class="plan-hdr"> 
+          <div class="plan-hdr-t">Day-by-day</div> 
+          <button class="edit-btn" onclick="showScreen('s-custom')">Customise 
+↗</button> 
+        </div> 
+        <div class="timeline"> 
+          <div class="tday"><div class="tdot">1</div><div class="tday-c"><h4>Arrival 
+&amp; Seminyak</h4><p>Land at Ngurah Rai, check-in to villa, sunset drinks at Ku De 
+Ta beach club</p><div class="tday-tags"><span class="ttag">     Transit</span><span 
+class="ttag food">           Bar</span></div></div></div> 
+          <div class="tday"><div class="tdot">2</div><div class="tday-c"><h4>Ubud &amp; 
+Tegalalang</h4><p>Rice terrace trek, Sacred Monkey Forest, Kecak dance at 
+sunset</p><div class="tday-tags"><span class="ttag nature">       Nature</span><span 
+class="ttag">   Culture</span></div></div></div> 
+          <div class="tday"><div class="tdot">3</div><div class="tday-c"><h4>Temple 
+Trail</h4><p>Tirta Empul, Pura Besakih Mother Temple, optional volcano hike</p><div 
+class="tday-tags"><span class="ttag">        Temples</span><span class="ttag 
+nature">        Hike</span></div></div></div> 
+          <div class="tday"><div class="tdot">4</div><div class="tday-c"><h4>Nusa Penida 
+Day Trip</h4><p>Kelingking Beach, Angel's Billabong snorkelling, Crystal Bay 
+sunset</p><div class="tday-tags"><span class="ttag nature">     Swim</span><span 
+class="ttag food">    Seafood</span></div></div></div> 
+          <div class="tday"><div class="tdot">5–7</div><div class="tday-c"><h4>Canggu 
+&amp; Leisure</h4><p>Surf lessons, beach clubs, warungs, rooftop yoga, cooking 
+class</p><div class="tday-tags"><span class="ttag">                              Surf</span><span class="ttag 
+food">        Food tour</span></div></div></div> 
+        </div> 
+      </div> 
+      <button class="ai-btn" onclick="refineAI()"> 
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+stroke-width="1.8"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10
+5"/><path d="M2 12l10 5 10-5"/></svg> 
+        Refine with AI ↗ 
+      </button> 
+    </div> 
+  </div> 
+ 
+  <!-- ═══════════════════ SCREEN: MAP & TRANSPORT 
+═══════════════════ --> 
+  <div id="s-map" class="screen"> 
+    <div class="body"> 
+      <div class="sec-label">Route planner</div> 
+      <div class="map-container"> 
+        <svg class="map-svg" viewBox="0 0 390 260"> 
+          <rect width="390" height="260" fill="#c9d8e8"/> 
+          <!-- roads --> 
+          <path d="M0 130 Q100 100 200 130 T390 120" stroke="#b0c4d8" stroke-width="8" 
+fill="none"/> 
+          <path d="M80 0 Q100 80 130 130 L150 260" stroke="#b0c4d8" stroke-width="6" 
+fill="none"/> 
+          <path d="M200 0 L210 130 Q220 200 240 260" stroke="#b0c4d8" stroke-width="5" 
+fill="none"/> 
+          <path d="M300 0 Q310 100 290 260" stroke="#b0c4d8" stroke-width="5" 
+fill="none"/> 
+          <path d="M0 200 Q150 180 390 210" stroke="#b0c4d8" stroke-width="5" 
+fill="none"/> 
+          <!-- highlight route --> 
+          <path d="M60 60 Q130 90 200 130 Q260 160 320 180" stroke="#1a6cf6" stroke
+width="3.5" fill="none" stroke-linecap="round" stroke-dasharray="0"/> 
+          <!-- landmarks --> 
+          <circle cx="60" cy="60" r="10" fill="#1a6cf6"/> 
+          <text x="60" y="64" text-anchor="middle" font-size="9" fill="white" font
+family="Sora,sans-serif" font-weight="700">A</text> 
+          <rect x="115" y="110" width="20" height="20" rx="4" fill="white" stroke="#1a6cf6" 
+stroke-width="1.5"/> 
+          <text x="125" y="124" text-anchor="middle" font-size="9" fill="#1a6cf6" font
+family="Sora,sans-serif" font-weight="700">M</text> 
+          <circle cx="200" cy="130" r="10" fill="#f5a623"/> 
+          <text x="200" y="134" text-anchor="middle" font-size="9" fill="white" font
+family="Sora,sans-serif" font-weight="700">B</text> 
+          <rect x="280" y="155" width="20" height="20" rx="4" fill="white" stroke="#1a6cf6" 
+stroke-width="1.5"/> 
+          <text x="290" y="169" text-anchor="middle" font-size="9" fill="#1a6cf6" font
+family="Sora,sans-serif" font-weight="700">M</text> 
+          <circle cx="320" cy="180" r="10" fill="#e8365d"/> 
+          <text x="320" y="184" text-anchor="middle" font-size="9" fill="white" font
+family="Sora,sans-serif" font-weight="700">C</text> 
+          <!-- labels --> 
+          <text x="60" y="52" text-anchor="middle" font-size="9" fill="#333" font
+family="Sora,sans-serif">Seminyak</text> 
+          <text x="200" y="122" text-anchor="middle" font-size="9" fill="#333" font
+family="Sora,sans-serif">Ubud</text> 
+          <text x="332" y="176" text-anchor="middle" font-size="9" fill="#333" font
+family="Sora,sans-serif">Nusa</text> 
+          <!-- scale bar --> 
+          <rect x="16" y="238" width="50" height="3" rx="1" fill="#888"/> 
+          <text x="16" y="252" font-size="9" fill="#666" font-family="Sora,sans-serif">0 ——
+——— 5km</text> 
+        </svg> 
+        <div class="map-overlay"> 
+          <input class="map-search" placeholder="Search places…" /> 
+          <button class="map-btn">Route</button> 
+        </div> 
+      </div> 
+      <div class="route-info"> 
+        <div class="route-title">Today's route · Bali</div> 
+        <div class="route-stops"> 
+          <div class="rstop"> 
+            <div class="rdot"><svg viewBox="0 0 10 10"><circle cx="5" cy="5" 
+r="4"/></svg></div> 
+            <div class="rstop-info"><div class="rstop-name">Hotel Seminyak</div><div 
+class="rstop-detail">Starting point</div></div> 
+            <div class="rstop-time">08:00</div> 
+          </div> 
+          <div class="rstop"> 
+            <div class="rdot"><svg viewBox="0 0 10 10"><circle cx="5" cy="5" 
+r="4"/></svg></div> 
+            <div class="rstop-info"><div class="rstop-name">Tegalalang Rice 
+Terrace</div><div class="rstop-detail">45 min drive · 28 km</div></div> 
+            <div class="rstop-time">09:30</div> 
+          </div> 
+          <div class="rstop"> 
+            <div class="rdot"><svg viewBox="0 0 10 10"><circle cx="5" cy="5" 
+r="4"/></svg></div> 
+            <div class="rstop-info"><div class="rstop-name">Ubud Palace &amp; 
+Market</div><div class="rstop-detail">10 min walk · 0.8 km</div></div> 
+            <div class="rstop-time">11:30</div> 
+          </div> 
+          <div class="rstop"> 
+            <div class="rdot end"><svg viewBox="0 0 10 10"><circle cx="5" cy="5" 
+r="4"/></svg></div> 
+            <div class="rstop-info"><div class="rstop-name">Sacred Monkey 
+Forest</div><div class="rstop-detail">5 min walk · 0.4 km</div></div> 
+            <div class="rstop-time">14:00</div> 
+          </div> 
+        </div> 
+      </div> 
+      <div class="sec-label">Nearby transport</div> 
+      <div class="transport-cards"> 
+        <div class="tcard"> 
+          <div class="tcard-icon" style="background:#e8f4ff">       </div> 
+          <h4>Perama Bus</h4> 
+          <p>Kuta → Ubud direct, every 2 hrs</p> 
+          <span class="tcard-badge" style="background:#e8f4ff;color:#0047b3">₹120 / 
+trip</span> 
+        </div> 
+        <div class="tcard"> 
+          <div class="tcard-icon" style="background:#fff3d0">       </div> 
+          <h4>Gojek Bike</h4> 
+          <p>On-demand scooter, ~5 min wait</p> 
+          <span class="tcard-badge" style="background:#fff3d0;color:#8a5200">₹30
+80</span> 
+        </div> 
+        <div class="tcard"> 
+          <div class="tcard-icon" style="background:#d0f5e8">        </div> 
+          <h4>Grab Car</h4> 
+          <p>AC taxi, airport &amp; intercity</p> 
+          <span class="tcard-badge" style="background:#d0f5e8;color:#007a52">₹150
+400</span> 
+        </div> 
+        <div class="tcard"> 
+          <div class="tcard-icon" style="background:#fde8ee">     </div> 
+          <h4>Fast Boat</h4> 
+          <p>Sanur → Nusa Penida, 45 min</p> 
+          <span class="tcard-badge" 
+style="background:#fde8ee;color:#a0002e">₹600</span> 
+        </div> 
+        <div class="tcard"> 
+          <div class="tcard-icon" style="background:#f0ebff">       </div> 
+          <h4>Kura-Kura Bus</h4> 
+          <p>Tourist circuit, hop-on hop-off</p> 
+          <span class="tcard-badge" 
+style="background:#f0ebff;color:#4a008a">₹250/day</span> 
+        </div> 
+      </div> 
+    </div> 
+  </div> 
+ 
+  <!-- ═══════════════════ SCREEN: HOTELS ═══════════════════ --> 
+  <div id="s-hotels" class="screen"> 
+    <div class="body"> 
+      <div class="itin-header"> 
+        <div><div class="sec-label" style="margin-bottom:2px">Hotels in</div><div 
+class="itin-title">Bali</div></div> 
+        <div style="font-size:12px;color:var(--text3)">8 options</div> 
+      </div> 
+      <div class="chips" style="margin-bottom:14px"> 
+        <div class="chip on" onclick="tog(this)">All</div> 
+        <div class="chip" onclick="tog(this)">Budget</div> 
+        <div class="chip" onclick="tog(this)">Mid-range</div> 
+        <div class="chip" onclick="tog(this)">Luxury</div> 
+        <div class="chip" onclick="tog(this)">Villa</div> 
+      </div> 
+      <div class="hotel-card"> 
+        <div class="hotel-img" style="background:linear
+gradient(135deg,#0F6E56,#1D9E75);position:relative"> 
+          <span style="position:absolute;inset:0;display:flex;align-items:center;justify
+content:center;font-size:40px">                    </span> 
+          <span class="hotel-tag">AI Pick ✦</span> 
+        </div> 
+        <div class="hotel-body"> 
+          <div class="hotel-row"><span class="hotel-name">The Layar Private 
+Villas</span><span class="hotel-stars">★★★★★</span></div> 
+          <div class="hotel-loc">    Seminyak, 1.2km from beach</div> 
+          <div class="hotel-amenities"> 
+            <span class="amenity">                 Pool</span><span class="amenity">     
+Breakfast</span><span class="amenity">      WiFi</span><span class="amenity">        
+Spa</span> 
+          </div> 
+          <div class="hotel-foot" style="margin-top:12px"> 
+            <div><div class="hotel-price">₹14,200 <span>/night</span></div><div 
+style="font-size:10.5px;color:var(--jade);margin-top:2px">  4.9 · 312 
+reviews</div></div> 
+            <button class="book-btn">Book</button> 
+          </div> 
+        </div> 
+      </div> 
+      <div class="hotel-card"> 
+        <div class="hotel-img" style="background:linear
+gradient(135deg,#185FA5,#378ADD)"> 
+          <span style="position:absolute;inset:0;display:flex;align-items:center;justify
+content:center;font-size:40px">       </span> 
+        </div> 
+        <div class="hotel-body"> 
+          <div class="hotel-row"><span class="hotel-name">Alaya Resort 
+Ubud</span><span class="hotel-stars">★★★★</span></div> 
+          <div class="hotel-loc">    Ubud, near Monkey Forest</div> 
+          <div class="hotel-amenities"> 
+            <span class="amenity">                 Pool</span><span class="amenity">                     
+Yoga</span><span class="amenity">      WiFi</span><span class="amenity">       
+Organic</span> 
+          </div> 
+          <div class="hotel-foot" style="margin-top:12px"> 
+            <div><div class="hotel-price">₹7,800 <span>/night</span></div><div style="font
+size:10.5px;color:var(--jade);margin-top:2px">  4.7 · 198 reviews</div></div> 
+            <button class="book-btn">Book</button> 
+          </div> 
+        </div> 
+      </div> 
+      <div class="hotel-card"> 
+        <div class="hotel-img" style="background:linear
+gradient(135deg,#854F0B,#EF9F27)"> 
+          <span style="position:absolute;inset:0;display:flex;align-items:center;justify
+content:center;font-size:40px">       </span> 
+        </div> 
+        <div class="hotel-body"> 
+          <div class="hotel-row"><span class="hotel-name">Canggu Beach 
+Hostel</span><span class="hotel-stars">★★★</span></div> 
+          <div class="hotel-loc">    Canggu, 300m from beach</div> 
+          <div class="hotel-amenities"> 
+            <span class="amenity">      WiFi</span><span class="amenity">     
+Kitchen</span><span class="amenity">                              Surf hire</span> 
+          </div> 
+          <div class="hotel-foot" style="margin-top:12px"> 
+            <div><div class="hotel-price">₹1,200 <span>/night</span></div><div style="font
+size:10.5px;color:var(--jade);margin-top:2px">  4.4 · 441 reviews</div></div> 
+            <button class="book-btn">Book</button> 
+          </div> 
+        </div> 
+      </div> 
+    </div> 
+  </div> 
+ 
+  <!-- ═══════════════════ SCREEN: PACKING LIST 
+═══════════════════ --> 
+  <div id="s-pack" class="screen"> 
+    <div class="body"> 
+      <div class="itin-header"> 
+        <div><div class="sec-label" style="margin-bottom:2px">Smart packing 
+for</div><div class="itin-title">Bali, 7 days</div></div> 
+        <div style="font-size:12px;color:var(--jade);font-weight:600" id="pack-pct">60% 
+packed</div> 
+      </div> 
+      <div id="pack-lists"></div> 
+      <div class="pack-add"> 
+        <input id="pack-input" type="text" placeholder="Add custom item…" /> 
+        <button onclick="addPackItem()">Add</button> 
+      </div> 
+    </div> 
+  </div> 
+ 
+  <!-- ═══════════════════ SCREEN: TIPS & REVIEWS 
+═══════════════════ --> 
+  <div id="s-tips" class="screen"> 
+    <div class="body"> 
+      <div class="itin-title" style="margin-bottom:14px">Local Intel · Bali</div> 
+      <div class="tip-tabs"> 
+        <button class="tip-tab on" onclick="tipTab(this,'food')">        Food</button> 
+        <button class="tip-tab" onclick="tipTab(this,'activities')">   Activities</button> 
+        <button class="tip-tab" onclick="tipTab(this,'reviews')">  Reviews</button> 
+      </div> 
+      <div id="tips-content"></div> 
+    </div> 
+  </div> 
+ 
+  <!-- ═══════════════════ SCREEN: WEATHER 
+═══════════════════ --> 
+  <div id="s-weather" class="screen"> 
+    <div class="body"> 
+      <div class="weather-hero"> 
+        <div class="wh-city">Bali, Indonesia</div> 
+        <div class="wh-temp">29<span>°C</span></div> 
+        <div class="wh-desc">   Mostly sunny — great for the beach</div> 
+        <div class="wh-meta"> 
+          <div class="wh-item"><div class="wh-item-val">78%</div><div class="wh-item
+lbl">Humidity</div></div> 
+          <div class="wh-item"><div class="wh-item-val">12 km/h</div><div class="wh
+item-lbl">Wind</div></div> 
+          <div class="wh-item"><div class="wh-item-val">UV 7</div><div class="wh-item
+lbl">UV Index</div></div> 
+        </div> 
+      </div> 
+      <div class="sec-label">7-day forecast</div> 
+      <div class="forecast-strip"> 
+        <div class="fc-day today"><div class="fc-day-name">Today</div><div class="fc
+icon">  </div><div class="fc-temp">29°</div></div> 
+        <div class="fc-day"><div class="fc-day-name">Mon</div><div class="fc
+icon">    </div><div class="fc-temp">28°</div></div> 
+        <div class="fc-day"><div class="fc-day-name">Tue</div><div class="fc
+icon">       </div><div class="fc-temp">27°</div></div> 
+        <div class="fc-day"><div class="fc-day-name">Wed</div><div class="fc
+icon">  </div><div class="fc-temp">30°</div></div> 
+        <div class="fc-day"><div class="fc-day-name">Thu</div><div class="fc
+icon">    </div><div class="fc-temp">29°</div></div> 
+        <div class="fc-day"><div class="fc-day-name">Fri</div><div class="fc
+icon">     </div><div class="fc-temp">26°</div></div> 
+        <div class="fc-day"><div class="fc-day-name">Sat</div><div class="fc
+icon">  </div><div class="fc-temp">31°</div></div> 
+      </div> 
+      <div style="background:var(--sun2);border-radius:var(--radius);padding:14px;border
+left:3px solid var(--sun);margin-bottom:16px"> 
+        <div style="font-weight:600;font-size:13px;margin-bottom:5px">        Packing tip 
+from weather</div> 
+        <div style="font-size:12.5px;color:var(--text2);line-height:1.6">Rain expected 
+Tuesday. Pack a light poncho — temple visits need covered shoulders anyway. Apply 
+SPF 50+ daily.</div> 
+      </div> 
+      <div class="sec-label">Best time to visit</div> 
+      <div style="background:var(--sand);border-radius:var(--radius);padding:14px"> 
+        <div style="font-size:12.5px;color:var(--text2);line-height:1.7">                <strong>April
+October</strong> is dry season — ideal for beaches and hiking. <strong>November
+March</strong> is wet season: great deals, fewer crowds, but afternoon showers daily. 
+Your trip dates fall in peak dry season — perfect timing!</div> 
+      </div> 
+    </div> 
+  </div> 
+ 
+  <!-- ═══════════════════ SCREEN: CULTURE 
+═══════════════════ --> 
+  <div id="s-culture" class="screen"> 
+    <div class="body"> 
+      <div class="itin-title" style="margin-bottom:5px">Culture Guide</div> 
+      <div style="font-size:12.5px;color:var(--text3);margin-bottom:16px">Bali, 
+Indonesia</div> 
+      <div class="do-dont"> 
+        <div class="dd-box do"> 
+          <div class="dd-title">✓ Do</div> 
+          <div class="dd-item">                     Bow slightly when greeting elders</div> 
+          <div class="dd-item">   Cover shoulders at temples</div> 
+          <div class="dd-item">     Accept offerings with right hand</div> 
+          <div class="dd-item">        Walk clockwise around temples</div> 
+        </div> 
+        <div class="dd-box dont"> 
+          <div class="dd-title">✗ Don't</div> 
+          <div class="dd-item">                        Touch someone's head</div> 
+          <div class="dd-item">    Step on flower offerings</div> 
+          <div class="dd-item">         Photo without asking</div> 
+          <div class="dd-item">    Wear swimwear off beach</div> 
+        </div> 
+      </div> 
+      <div class="culture-card" style="background:var(--sand);border:1px solid #dde1e7"> 
+        <div class="cc-top"> 
+          <div class="cc-icon" style="background:var(--sun2)">                    </div> 
+          <div><div class="cc-title">Hindu Traditions</div><div class="cc-sub">Majority 
+religion in Bali</div></div> 
+        </div> 
+        <div class="cc-body"> 
+          <div class="cc-text">Bali is the only Hindu-majority island in Indonesia. Religion is 
+woven into everyday life — you'll see daily offerings (canang sari), hear temple bells, and 
+witness ceremonies throughout your stay.</div> 
+          <div class="cc-tips"> 
+            <div class="cc-tip">Rent a sarong (₹50) at temple entrances if you forget 
+yours</div> 
+            <div class="cc-tip">Don't enter temples during menstruation — signs are 
+posted</div> 
+            <div class="cc-tip">Galungan festival: extraordinary decorations island
+wide</div> 
+          </div> 
+        </div> 
+      </div> 
+      <div class="culture-card" style="background:var(--sand);border:1px solid #dde1e7"> 
+        <div class="cc-top"> 
+          <div class="cc-icon" style="background:var(--jade2)">  </div> 
+          <div><div class="cc-title">Language Basics</div><div class="cc-sub">Indonesian 
+&amp; Balinese</div></div> 
+        </div> 
+        <div class="cc-body"> 
+          <div class="cc-text">Most locals speak basic English in tourist areas. Learning a 
+few words earns instant goodwill.</div> 
+          <div class="cc-tips"> 
+            <div class="cc-tip">Halo / Selamat pagi — Hello / Good morning</div> 
+            <div class="cc-tip">Terima kasih — Thank you</div> 
+            <div class="cc-tip">Berapa harganya? — How much?</div> 
+            <div class="cc-tip">Tidak apa-apa — No problem / It's okay</div> 
+          </div> 
+        </div> 
+      </div> 
+    </div> 
+  </div> 
+ 
+  <!-- ═══════════════════ SCREEN: NOTIFICATIONS 
+═══════════════════ --> 
+  <div id="s-notif" class="screen"> 
+    <div class="body"> 
+      <div class="itin-header"> 
+        <div class="itin-title">Notifications</div> 
+        <span style="font-size:11px;color:var(--sky);font-weight:600;background:var(-
+sky3);padding:3px 10px;border-radius:10px">5 new</span> 
+      </div> 
+      <div style="background:var(--jade2);border-radius:var(--radius);padding:14px 
+16px;margin-bottom:16px;border-left:3px solid var(--jade)"> 
+        <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text
+transform:uppercase;color:#007a52;margin-bottom:5px">Smart Travel Alerts</div> 
+        <div style="font-size:12.5px;color:var(--text2);line-height:1.5">Push notifications 
+keep you on track even when the app is closed — just like your favourite shopping 
+apps!</div> 
+      </div> 
+      <div id="notif-list"></div> 
+      <div style="margin-top:16px"> 
+        <div class="sec-label">Notification settings</div> 
+        <div id="notif-settings"></div> 
+      </div> 
+    </div> 
+  </div> 
+ 
+  <!-- ═══════════════════ SCREEN: CUSTOM PLAN 
+═══════════════════ --> 
+  <div id="s-custom" class="screen"> 
+    <div class="body"> 
+      <div class="itin-title" style="margin-bottom:4px">Customise Plan</div> 
+      <div style="font-size:12.5px;color:var(--text3);margin-bottom:16px">Adjust your Bali 
+itinerary</div> 
+      <div class="custom-section"> 
+        <div class="custom-title">  Trip intensity</div> 
+        <div class="slider-row"><div class="slider-label"><span>Activities per 
+day</span><span id="act-val">3</span></div><input type="range" min="1" max="6" 
+value="3" oninput="document.getElementById('act
+val').textContent=this.value"/></div> 
+        <div class="slider-row"><div class="slider-label"><span>Daily budget 
+(₹)</span><span id="bud-val">6,000</span></div><input type="range" min="1000" 
+max="20000" step="500" value="6000" oninput="document.getElementById('bud
+val').textContent=Number(this.value).toLocaleString('en-IN')"/></div> 
+        <div class="slider-row"><div class="slider-label"><span>Walk tolerance 
+(km)</span><span id="walk-val">5</span></div><input type="range" min="1" max="20" 
+value="5" oninput="document.getElementById('walk
+val').textContent=this.value"/></div> 
+      </div> 
+      <div class="custom-section"> 
+        <div class="custom-title">   Interests</div> 
+        <div class="toggle-row" id="interest-pills"> 
+          <div class="tog-pill on" onclick="togPill(this)">Temples</div> 
+          <div class="tog-pill on" onclick="togPill(this)">Beaches</div> 
+          <div class="tog-pill" onclick="togPill(this)">Nightlife</div> 
+          <div class="tog-pill on" onclick="togPill(this)">Food tours</div> 
+          <div class="tog-pill" onclick="togPill(this)">Shopping</div> 
+          <div class="tog-pill" onclick="togPill(this)">Surfing</div> 
+          <div class="tog-pill" onclick="togPill(this)">Yoga</div> 
+          <div class="tog-pill on" onclick="togPill(this)">Hiking</div> 
+        </div> 
+      </div> 
+      <div class="custom-section"> 
+        <div class="custom-title">         Transport preference</div> 
+        <div class="toggle-row"> 
+          <div class="tog-pill on" onclick="togPill(this)">Scooter</div> 
+          <div class="tog-pill" onclick="togPill(this)">Car hire</div> 
+          <div class="tog-pill on" onclick="togPill(this)">Grab / Gojek</div> 
+          <div class="tog-pill" onclick="togPill(this)">Walking</div> 
+        </div> 
+      </div> 
+      <button class="regen-btn" onclick="regenPlan()"> 
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+stroke-width="2.2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 
+14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg> 
+        Regenerate Itinerary with AI ↗ 
+      </button> 
+    </div> 
+  </div> 
+ 
+  <!-- ═══════════════════ SCREEN: OFFLINE ═══════════════════ --> 
+  <div id="s-offline" class="screen"> 
+    <div class="body"> 
+      <div class="offline-hero"> 
+        <div class="offline-icon">          </div> 
+        <div> 
+          <div class="offline-title">Offline Mode</div> 
+          <div class="offline-sub">Download maps &amp; guides · Travel without Wi-Fi</div> 
+        </div> 
+      </div> 
+      <div class="sec-label">Download for offline use</div> 
+      <div class="offline-map-card"> 
+        <div class="offline-map-top" style="background:linear
+gradient(135deg,#b8ddc9,#7ab89e)"> 
+          <span style="font-size:50px">     </span> 
+        </div> 
+        <div class="offline-map-body"> 
+          <div class="offline-map-info"><h4>Bali — Full Island Map</h4><p>Roads, 
+landmarks, transport · 84 MB</p></div> 
+          <button class="dl-btn done" id="dl-bali" onclick="downloadMap('bali')">✓ 
+Saved</button> 
+        </div> 
+      </div> 
+      <div class="offline-map-card"> 
+        <div class="offline-map-top" style="background:linear
+gradient(135deg,#c9d8e8,#8fafc8)"> 
+          <span style="font-size:50px">      </span> 
+        </div> 
+        <div class="offline-map-body"> 
+          <div class="offline-map-info"><h4>Nusa Penida Island</h4><p>Hiking trails 
+&amp; beaches · 32 MB</p></div> 
+          <button class="dl-btn" id="dl-nusa" onclick="downloadMap('nusa')">⬇ 
+Download</button> 
+        </div> 
+      </div> 
+      <div class="offline-map-card"> 
+        <div class="offline-map-top" style="background:linear
+gradient(135deg,#e8d8b8,#c8a870)"> 
+          <span style="font-size:50px">        </span> 
+        </div> 
+        <div class="offline-map-body"> 
+          <div class="offline-map-info"><h4>Ubud Town Guide</h4><p>Restaurants, 
+temples, ATMs · 18 MB</p></div> 
+          <button class="dl-btn" id="dl-ubud" onclick="downloadMap('ubud')">⬇ 
+Download</button> 
+        </div> 
+      </div> 
+      <div style="background:var(--sand);border-radius:var(-
+radius);padding:14px;margin-top:4px"> 
+        <div style="font-weight:600;font-size:13px;margin-bottom:8px">       Offline guide 
+includes</div> 
+        <div style="font-size:12.5px;color:var(--text2);line-height:1.8"> 
+          ✔ Full navigable map (no internet needed)<br> 
+          ✔ Temple opening times &amp; entry fees<br> 
+          ✔ Emergency numbers &amp; hospital locations<br> 
+          ✔ Phrasebook: 50 essential Indonesian phrases<br> 
+          ✔ Currency converter (rates cached daily)<br> 
+          ✔ Your full itinerary &amp; hotel bookings 
+        </div> 
+      </div> 
+    </div> 
+  </div> 
+ 
+  <!-- ═══════════════════ BOTTOM NAV ═══════════════════ --> 
+  <nav class="nav" id="nav-bar"></nav> 
+ 
+</div> 
+<script> 
+// ── Nav config ── 
+const TABS = [ 
+{id:'explore', icon:'<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10
+10S17.52 2 12 2zm-1 14H9V8l5 4-3 4z" fill="currentColor" stroke="none"/>', 
+label:'Explore'}, 
+{id:'itin',    icon:'<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" 
+x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" 
+y2="10"/>', label:'Trip'}, 
+{id:'map',     icon:'<polygon points="3,6 9,3 15,6 21,3 21,18 15,21 9,18 3,21"/><line 
+x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/>', label:'Map'}, 
+{id:'hotels',  icon:'<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline 
+points="9,22 9,12 15,12 15,22"/>', label:'Hotels'}, 
+{id:'pack',    icon:'<path d="M20 7H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2
+2V9a2 2 0 0 0-2-2z"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>', 
+label:'Pack'}, 
+{id:'tips',    icon:'<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 
+2z"/>', label:'Tips'}, 
+{id:'weather', icon:'<path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/>', 
+label:'Weather'}, 
+{id:'culture', icon:'<circle cx="12" cy="8" r="7"/><polyline points="8.21,13.89 7,23 
+12,20 17,23 15.79,13.88"/>', label:'Culture'}, 
+{id:'notif',   icon:'<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path 
+d="M13.73 21a2 2 0 0 1-3.46 0"/>', label:'Alerts'}, 
+{id:'custom',  icon:'<line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" 
+y2="12"/><line x1="12" y1="18" x2="20" y2="18"/><circle cx="4" cy="18" r="2"/>', 
+label:'Custom'}, 
+{id:'offline', icon:'<line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 
+10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path 
+d="M10.71 5.05A16 16 0 0 1 22.56 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7
+2.88"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" 
+y2="20"/>', label:'Offline'}, 
+]; 
+const nav = document.getElementById('nav-bar'); 
+TABS.forEach(t => { 
+const btn = document.createElement('button'); 
+btn.className = 'nav-btn' + (t.id==='explore'?' on':''); 
+btn.id = 'nav-'+t.id; 
+btn.innerHTML = `<svg viewBox="0 0 24 24">${t.icon}</svg>${t.label}`; 
+btn.onclick = () => showScreen('s-'+t.id); 
+nav.appendChild(btn); 
+}); 
+// Scrollable nav 
+nav.style.overflowX = 'auto'; 
+nav.style.scrollbarWidth = 'none'; 
+function showScreen(id) { 
+document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
+document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('on')); 
+document.getElementById(id).classList.add('active'); 
+const navId = 'nav-' + id.replace('s-',''); 
+const nb = document.getElementById(navId); 
+if(nb){ nb.classList.add('on'); nb.scrollIntoView({inline:'center',behavior:'smooth'}); } 
+} 
+function tog(el){ el.classList.toggle('on'); } 
+function togPill(el){ el.classList.toggle('on'); } 
+// ── Itinerary ── 
+function goItin(dest, budget, days) { 
+document.getElementById('itin-title').textContent = dest + ', ' + days + ' days'; 
+document.getElementById('itin-days').textContent = days; 
+document.getElementById('itin-budget').textContent = budget; 
+showScreen('s-itin'); 
+} 
+function planTrip(){ 
+const to = document.getElementById('to').value || 'Bali, Indonesia'; 
+const dur = document.getElementById('dur').value; 
+goItin(to.charAt(0).toUpperCase()+to.slice(1), '₹42,000', dur.replace(' days','')); 
+} 
+function askAI(){ sendPrompt('Give me personalised travel destination 
+recommendations from Pune, India — I love adventure and culture. Suggest 3 unique 
+places with rough budgets.'); } 
+function refineAI(){ sendPrompt('Refine my Bali itinerary: add a cooking class on day 3, 
+swap day 4 to include a waterfall hike, and suggest budget guesthouses instead of 
+villas.'); } 
+function regenPlan(){ sendPrompt('Regenerate my Bali itinerary with the customised 
+settings: 3 activities/day, ₹6,000 daily budget, interests in Temples, Beaches, Food tours 
+and Hiking, transport by Scooter and Grab.'); } 
+function editPlan(){ sendPrompt('Help me customise my 7-day Bali itinerary — I want 
+more beach time and fewer temple visits.'); } 
+// ── Packing List ── 
+const packData = { 
+'Essentials         
+': [ 
+{t:'Passport + visa printout',done:true},{t:'Travel insurance docs',done:true},{t:'Flight 
+tickets (offline)',done:true},{t:'Hotel booking printouts',done:false},{t:'Emergency 
+contacts list',done:false} 
+], 
+'Clothing     
+': [ 
+{t:'Light cotton shirts ×4',done:true},{t:'Shorts/skirts ×3',done:true},{t:'Temple sarong 
+(or buy there)',done:false},{t:'Swimwear ×2',done:true},{t:'Light rain 
+poncho',done:false},{t:'Sandals + flip-flops',done:true} 
+], 
+'Toiletries     
+': [ 
+{t:'SPF 50+ sunscreen ×2',done:false},{t:'Mosquito repellent',done:false},{t:'Hand 
+sanitiser',done:true},{t:'Diarrhoea meds',done:false},{t:'Rehydration sachets',done:false} 
+], 
+'Tech       
+': [ 
+{t:'Power bank (20,000 mAh)',done:true},{t:'Universal 
+adapter',done:true},{t:'Waterproof phone case',done:false},{t:'Offline maps 
+downloaded',done:false} 
+] 
+}; 
+function renderPack(){ 
+const container = document.getElementById('pack-lists'); 
+let totalItems=0, doneItems=0; 
+container.innerHTML = ''; 
+for(const [cat, items] of Object.entries(packData)){ 
+const done = items.filter(i=>i.done).length; 
+totalItems += items.length; doneItems += done; 
+const pct = Math.round(done/items.length*100); 
+let html = `<div class="pack-category"> 
+<div class="pack-cat-hdr"><span class="pack-cat-title">${cat}</span><span 
+class="pack-progress">${done}/${items.length}</span></div> 
+<div class="pack-bar"><div class="pack-fill" style="width:${pct}%"></div></div>`; 
+items.forEach((item,i)=>{ 
+html += `<div class="pack-item${item.done?' done':''}" 
+onclick="togglePack('${cat}',${i})"> 
+<div class="pack-check${item.done?' done':''}"></div> 
+<span class="pack-text">${item.t}</span></div>`; 
+}); 
+html += '</div>'; 
+container.innerHTML += html; 
+} 
+document.getElementById('pack-pct').textContent = 
+Math.round(doneItems/totalItems*100) + '% packed'; 
+} 
+function togglePack(cat, idx){ packData[cat][idx].done = !packData[cat][idx].done; 
+renderPack(); } 
+function addPackItem(){ 
+const inp = document.getElementById('pack-input'); 
+if(!inp.value.trim()) return; 
+packData['Essentials         
+'].push({t:inp.value.trim(),done:false}); 
+inp.value=''; renderPack(); 
+} 
+renderPack(); 
+// ── Tips Content ── 
+const tipsContent = { 
+food: ` 
+<div class="food-card"><div class="food-img" 
+style="background:#fff3d0">       </div><div class="food-info"><h4>Nasi 
+Goreng</h4><p>Indonesia's iconic fried rice — best from a night warung, around 
+₹60</p><div class="food-foot"><span class="food-price">₹60–150</span><span 
+class="food-rating">★ 4.9</span></div></div></div> 
+<div class="food-card"><div class="food-img" 
+style="background:#ffe8e0">        </div><div class="food-info"><h4>Babi 
+Guling</h4><p>Suckling pig roast — Ibu Oka in Ubud is the legendary spot, go at 
+11am</p><div class="food-foot"><span class="food-price">₹350</span><span 
+class="food-rating">★ 4.8</span></div></div></div> 
+<div class="food-card"><div class="food-img" 
+style="background:#d0f5e8">      </div><div class="food
+info"><h4>Jamu</h4><p>Traditional herbal tonic with turmeric &amp; ginger. Healthy 
+&amp; refreshing.</p><div class="food-foot"><span class="food
+price">₹30</span><span class="food-rating">★ 4.7</span></div></div></div> 
+<div class="food-card"><div class="food-img" 
+style="background:#f0ebff">         </div><div class="food-info"><h4>Jimbaran 
+Seafood</h4><p>Sunset BBQ on the beach — freshest lobster &amp; snapper grilled 
+live.</p><div class="food-foot"><span class="food-price">₹600–1,200</span><span 
+class="food-rating">★ 4.6</span></div></div></div> 
+`, 
+activities: ` 
+<div class="review-card"> 
+<div class="rev-hdr"><div class="rev-avatar" 
+style="background:#1D9E75">       </div><div><div class="rev-name">Mount Batur 
+Sunrise Trek</div><div class="rev-date">        
+4am start · 2hrs up</div></div></div> 
+<div class="rev-text">Wake at 2am, trek by torchlight, watch sunrise from 1717m — 
+the most magical morning of your trip. Bring a warm layer. ₹1,800 with guide.</div> 
+<div class="rev-tags"><span class="rtag">       
+Hiking</span><span class="rtag">         
+Views</span><span class="rtag">       
+</div> 
+<div class="review-card"> 
+Sunrise</span></div> 
+<div class="rev-hdr"><div class="rev-avatar" 
+style="background:#185FA5">                             </div><div><div class="rev-name">Surf Lessons — 
+Kuta Beach</div><div class="rev-date">        
+2hr session · All levels</div></div></div> 
+<div class="rev-text">Best beginner waves in SE Asia. Pro surf schools on the beach 
+from ₹800 including board. Book morning sessions — afternoons get crowded.</div> 
+<div class="rev-tags"><span class="rtag">                              
+Surfing</span><span class="rtag">        
+Beginner-friendly</span></div> 
+</div> 
+`, 
+reviews: ` 
+<div class="review-card"> 
+<div class="rev-hdr"><div class="rev-avatar" 
+style="background:#e8365d">RK</div><div><div class="rev-name">Rohit K. · 
+Pune</div><div class="rev-date">March 2025</div></div></div> 
+<div class="rev-stars">★★★★★</div> 
+<div class="rev-text">Used Voyago for my Bali trip — the offline maps saved me 
+when I had no signal in Ubud. The AI itinerary was spot-on, every activity timed 
+perfectly!</div> 
+<div class="rev-tags"><span class="rtag">Offline maps</span><span 
+class="rtag">AI itinerary</span></div> 
+</div> 
+<div class="review-card"> 
+<div class="rev-hdr"><div class="rev-avatar" 
+style="background:#534AB7">AS</div><div><div class="rev-name">Ananya S. · 
+Mumbai</div><div class="rev-date">January 2025</div></div></div> 
+<div class="rev-stars">★★★★★</div> 
+<div class="rev-text">The notifications reminded me to check in 24hrs before my 
+f
+light and suggested a last-minute evening activity when I was free. Felt like having a 
+personal travel agent!</div> 
+<div class="rev-tags"><span class="rtag">Notifications</span><span 
+class="rtag">Last-minute tips</span></div> 
+</div> 
+` 
+}; 
+let activeTipTab = 'food'; 
+function tipTab(el, tab){ 
+document.querySelectorAll('.tip-tab').forEach(t=>t.classList.remove('on')); 
+el.classList.add('on'); 
+activeTipTab = tab; 
+document.getElementById('tips-content').innerHTML = tipsContent[tab]; 
+} 
+document.getElementById('tips-content').innerHTML = tipsContent.food; 
+// ── Notifications ── 
+const notifs = [ 
+{icon:'         
+',bg:'#d0e6ff',title:'Check-in opens in 24 hours!',text:'Your Pune → Bali flight 
+AI678 check-in opens tomorrow at 06:00. Tap to check in online and save your boarding 
+pass.',time:'Just now',action:'Check in now',unread:true}, 
+{icon:'  
+',bg:'#fff3d0',title:'Perfect weather tomorrow!',text:'Ubud forecast: 28°C, 
+sunny. Ideal day for the Tegalalang rice terrace trek. Start by 8am to beat the 
+heat.',time:'2 hrs ago',action:'View plan',unread:true}, 
+{icon:'       
+',bg:'#d0f5e8',title:'Dinner tonight — local pick',text:'Warung Sopa on Jl. 
+Sugriwa opens at 6pm — 5 min walk from your hotel. Famous for authentic Balinese 
+cuisine at ₹200/meal.',time:'4 hrs ago',action:'Get directions',unread:true}, 
+{icon:'     
+',bg:'#fde8ee',title:'What to do next?',text:'You have 3 free hours this 
+afternoon. Nearby: Tanah Lot sunset (40 min drive) or a traditional Balinese cooking 
+class starting at 4pm.',time:'5 hrs ago',action:'Explore options',unread:true}, 
+{icon:'                
+',bg:'#f0ebff',title:'Local festival alert!',text:'Galungan Festival is happening 
+TODAY across Bali! Streets are decorated with penjor bamboo poles. Don\'t miss the 
+temple ceremonies.',time:'Yesterday',action:'See details',unread:false}, 
+]; 
+const settings = [ 
+{label:'Trip reminders',desc:'Check-in, activity &amp; departure alerts'}, 
+{label:'Smart suggestions',desc:'What to do when you\'re free'}, 
+{label:'Weather alerts',desc:'Rain warnings &amp; packing tips'}, 
+{label:'Local events',desc:'Festivals, markets &amp; shows nearby'}, 
+{label:'Price drops',desc:'Hotel &amp; flight deal alerts'}, 
+]; 
+function renderNotifs(){ 
+  const list = document.getElementById('notif-list'); 
+  list.innerHTML = notifs.map(n=>` 
+    <div class="notif-card" style="background:${n.bg}20;border:1px solid ${n.bg}"> 
+      <div class="notif-icon" style="background:${n.bg}">${n.icon}</div> 
+      <div class="notif-body"> 
+        <div class="notif-title">${n.title}</div> 
+        <div class="notif-text">${n.text}</div> 
+        <div style="display:flex;align-items:center;gap:10px;margin-top:5px"> 
+          <span class="notif-time">${n.time}</span> 
+          <button class="notif-action">${n.action} →</button> 
+        </div> 
+      </div> 
+      <div class="notif-dot ${n.unread?'unread':'read'}"></div> 
+    </div>`).join(''); 
+ 
+  const sett = document.getElementById('notif-settings'); 
+  sett.innerHTML = settings.map((s,i)=>` 
+    <div class="notif-switch-row"> 
+      <div><div class="notif-switch-lbl">${s.label}</div><div class="notif-switch
+desc">${s.desc}</div></div> 
+      <div class="toggle ${i<4?'on':''}" onclick="this.classList.toggle('on')"></div> 
+    </div>`).join(''); 
+} 
+renderNotifs(); 
+ 
+// ── Offline Maps ── 
+function downloadMap(id){ 
+const btn = document.getElementById('dl-'+id); 
+if(btn.classList.contains('done')) return; 
+btn.textContent = '⬇ 0%'; 
+btn.disabled = true; 
+let p=0; 
+const iv = setInterval(()=>{ 
+p += Math.floor(Math.random()*15)+5; 
+if(p>=100){p=100;clearInterval(iv);btn.textContent='✓ 
+Saved';btn.classList.add('done');btn.disabled=false;} 
+else btn.textContent='⬇ '+p+'%'; 
+},200); 
+} 
+// ── Set today's date ── 
+document.getElementById('dep').value = new Date().toISOString().split('T')[0]; 
+</script> 
+</body> 
+</html> 
